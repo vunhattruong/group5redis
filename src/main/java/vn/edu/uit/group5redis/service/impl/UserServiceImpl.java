@@ -29,78 +29,92 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public UserDto getUserById (UUID userId) {
-        if ( userId == null ) {
+    public UserDto getUserById(UUID userId) {
+        if (userId == null) {
             throw new BaseException("Missing userId");
         }
         UserCacheInfo userCacheInfo = getUserCacheInfo(userId);
-        if ( userCacheInfo != null ) {
+        if (userCacheInfo != null) {
             log.info("User has been got from cache with userId: " + userId);
             return UserDto.builder()
-                          .userId(userCacheInfo.getUserId())
-                          .userName(userCacheInfo.getUserName())
-                          .phoneNumber(userCacheInfo.getPhoneNumber())
-                          .status("SUCCESS")
-                          .message("Got user from Redis Cache")
-                          .build();
+                    .userId(userCacheInfo.getUserId())
+                    .userName(userCacheInfo.getUserName())
+                    .phoneNumber(userCacheInfo.getPhoneNumber())
+                    .status("SUCCESS")
+                    .message("Got user from Redis Cache")
+                    .build();
         }
 
         Optional<User> userOptional = userRepository.findById(userId);
-        if ( userOptional.isEmpty() ) {
+        if (userOptional.isEmpty()) {
             throw new BaseException("The User does not exist!");
         }
         User user = userOptional.get();
+        log.info("Set user to Redis Cache with key: " + user.getId());
+        redisClientUtils.setCache(
+                String.format(CommonConstants.USER_CACHE_KEY, userId),
+                UserCacheInfo.builder()
+                        .userId(user.getId())
+                        .userId(user.getId())
+                        .userName(user.getUserName())
+                        .fullName(user.getFullName())
+                        .phoneNumber(user.getPhoneNumber())
+                        .address(user.getAddress())
+                        .build(),
+                7,
+                TimeUnit.DAYS
+        );
         return UserDto.builder()
-                      .userId(user.getId())
-                      .userName(user.getUserName())
-                      .phoneNumber(user.getPhoneNumber())
-                      .status("SUCCESS")
-                      .message("Got user from Database")
-                      .build();
+                .userId(user.getId())
+                .userName(user.getUserName())
+                .phoneNumber(user.getPhoneNumber())
+                .status("SUCCESS")
+                .message("Got user from Database")
+                .build();
     }
 
     @Override
-    public UserDto createUser (UserRequest request) {
-        User   user   = userRepository.save(new User(request));
+    public UserDto createUser(UserRequest request) {
+        User user = userRepository.save(new User(request));
         String userId = user.getId().toString();
         log.info(
-            "[USER_CREATED] Created user in database successfully id={}",
-            userId
+                "[USER_CREATED] Created user in database successfully id={}",
+                userId
         );
         // Set user to redis cache and set expire time to 7 days
         UserCacheInfo userCacheInfo = UserCacheInfo.builder()
-                                                   .userId(user.getId())
-                                                   .userName(user.getUserName())
-                                                   .fullName(user.getFullName())
-                                                   .phoneNumber(user.getPhoneNumber())
-                                                   .address(user.getAddress())
-                                                   .build();
+                .userId(user.getId())
+                .userName(user.getUserName())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .build();
         redisClientUtils.setCache(
-            String.format(CommonConstants.USER_CACHE_KEY, userId),
-            userCacheInfo,
-            7,
-            TimeUnit.DAYS
+                String.format(CommonConstants.USER_CACHE_KEY, userId),
+                userCacheInfo,
+                7,
+                TimeUnit.DAYS
         );
         log.info(
-            "[USER_CACHE] Set User to redis cache successfully for userId={}," +
-            " userName={}, phoneNumber={}",
-            user.getId(),
-            user.getUserName(),
-            user.getPhoneNumber()
+                "[USER_CACHE] Set User to redis cache successfully for userId={}," +
+                        " userName={}, phoneNumber={}",
+                user.getId(),
+                user.getUserName(),
+                user.getPhoneNumber()
         );
         return UserDto.builder()
-                      .userId(user.getId())
-                      .userName(user.getUserName())
-                      .phoneNumber(user.getPhoneNumber())
-                      .status("CREATED")
-                      .message("Created User and stored to Redis Cache")
-                      .build();
+                .userId(user.getId())
+                .userName(user.getUserName())
+                .phoneNumber(user.getPhoneNumber())
+                .status("CREATED")
+                .message("Created User and stored to Redis Cache")
+                .build();
     }
 
-    private UserCacheInfo getUserCacheInfo (UUID userId) {
+    private UserCacheInfo getUserCacheInfo(UUID userId) {
         UserCacheInfo cacheInfo = redisClientUtils.get(
-            String.format(CommonConstants.USER_CACHE_KEY, userId));
-        if ( cacheInfo == null ) {
+                String.format(CommonConstants.USER_CACHE_KEY, userId));
+        if (cacheInfo == null) {
             log.info("Cache not found for userId: " + userId);
             return null;
         }
