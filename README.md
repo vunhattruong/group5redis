@@ -1,5 +1,5 @@
 # Getting Started
-
+### POSTMAN : [CTDL.postman_collection.zip](https://github.com/vunhattruong/group5redis/files/9415143/CTDL.postman_collection.zip)
 ### Reference Documentation
 
 For further reference, please consider the following sections:

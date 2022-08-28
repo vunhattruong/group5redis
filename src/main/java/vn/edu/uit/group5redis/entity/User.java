@@ -24,7 +24,7 @@ import lombok.Setter;
 import vn.edu.uit.group5redis.dto.UserRequest;
 
 @Entity
-@Table(name = "USER")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,31 +33,31 @@ import vn.edu.uit.group5redis.dto.UserRequest;
 public class User {
     @Id
     @GeneratedValue
-    @Type(type = "uuid-char")
-    @Column(name = "ID", nullable = false)
+    @Type(type = "pg-uuid")
+    @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "USER_NAME")
+    @Column(name = "userName")
     private String userName;
 
-    @Column(name = "FULL_NAME")
+    @Column(name = "fullName")
     private String fullName;
 
-    @Column(name = "PHONE_NUMBER")
+    @Column(name = "phoneNumber")
     private String phoneNumber;
 
-    @Column(name = "EMAIL")
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "ADDRESS")
+    @Column(name = "address")
     private String address;
 
-    @CreatedDate
-    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "createdDate", nullable = false, updatable = false)
     private Date createdDate;
 
     @UpdateTimestamp
-    @Column(name = "MODIFIED_DATE", nullable = false)
+    @Column(name = "modifiedDate", nullable = false)
     private Date modifiedDate;
 
     public User (UserRequest request) {
