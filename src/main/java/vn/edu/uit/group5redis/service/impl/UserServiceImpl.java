@@ -119,4 +119,51 @@ public class UserServiceImpl implements UserService {
         }
         return cacheInfo;
     }
+
+    @Override
+    public UserDto updateUser(UUID uuid, UserRequest request) {
+        String userId = uuid.toString();
+        if (userId == null) {
+            throw new BaseException("Missing userId");
+        }
+
+        Optional<User> userOptional = userRepository.findById(uuid);
+        if (userOptional.isEmpty()) {
+            throw new BaseException("The User does not exist!");
+        }
+
+        User updateUser = new User(request);
+        updateUser.setId(uuid);
+        userRepository.save(updateUser);
+
+        log.info("[USER_UPDATED] Update user in database successfully id={}", userId);
+
+        UserCacheInfo userCacheInfo = UserCacheInfo.builder()
+                .userId(updateUser.getId())
+                .userName(updateUser.getUserName())
+                .fullName(updateUser.getFullName())
+                .phoneNumber(updateUser.getPhoneNumber())
+                .address(updateUser.getAddress())
+                .build();
+        redisClientUtils.setCache(
+                String.format(CommonConstants.USER_CACHE_KEY, userId),
+                userCacheInfo,
+                7,
+                TimeUnit.DAYS
+        );
+        log.info(
+                "[USER_CACHE] Set User to redis cache successfully for userId={}," +
+                        " userName={}, phoneNumber={}",
+                updateUser.getId(),
+                updateUser.getUserName(),
+                updateUser.getPhoneNumber()
+        );
+        return UserDto.builder()
+                .userId(updateUser.getId())
+                .userName(updateUser.getUserName())
+                .phoneNumber(updateUser.getPhoneNumber())
+                .status("UPDATED")
+                .message("Update User and stored to Redis Cache")
+                .build();
+    }
 }

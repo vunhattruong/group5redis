@@ -25,14 +25,21 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<UserDto> get (@PathVariable(name = "uuid") UUID uuid) {
+    public ResponseEntity<UserDto> get(@PathVariable(name = "uuid") UUID uuid) {
         return ResponseEntity.ok(userService.getUserById(uuid));
     }
 
     @PostMapping
-    ResponseEntity<UserDto> createUser (
-        @RequestBody @Valid UserRequest request) {
+    ResponseEntity<UserDto> createUser(
+            @RequestBody @Valid UserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
+    }
+
+    @PostMapping("/{uuid}")
+    ResponseEntity<UserDto> updateUser(
+            @PathVariable(name = "uuid") UUID uuid,
+            @RequestBody @Valid UserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(uuid, request));
     }
 
 }
