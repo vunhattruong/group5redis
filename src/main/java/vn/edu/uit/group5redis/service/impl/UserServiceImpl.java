@@ -55,7 +55,6 @@ public class UserServiceImpl implements UserService {
                 String.format(CommonConstants.USER_CACHE_KEY, userId),
                 UserCacheInfo.builder()
                         .userId(user.getId())
-                        .userId(user.getId())
                         .userName(user.getUserName())
                         .fullName(user.getFullName())
                         .phoneNumber(user.getPhoneNumber())
