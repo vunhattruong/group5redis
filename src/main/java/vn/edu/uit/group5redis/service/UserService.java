@@ -9,4 +9,6 @@ public interface UserService {
     UserDto getUserById (UUID userId);
 
     UserDto createUser (UserRequest request);
+
+    UserDto updateUser (UUID uuid, UserRequest request);
 }
